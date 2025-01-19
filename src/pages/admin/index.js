@@ -1,4 +1,4 @@
-import { ManageUsersPage } from "./manageUserspage";
+import { ManageUsersPage } from "./ManageUserspage";
 import { ManageQuestionnaires } from "./ManageQuestionnaires";
 import { MessagesPage } from "./MessagesPage";
 import { AdminSettings } from "./AdminSettings";
