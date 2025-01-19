@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -9,12 +9,19 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [contactForm, setContactForm] = useState({
     name: "",
     email: "",
     message: "",
+  });
+  const [registerForm, setRegisterForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const mentalHealthTips = [
@@ -59,11 +66,38 @@ export default function App() {
     );
   };
 
+  const handleRegisterChange = (e) => {
+    setRegisterForm({
+      ...registerForm,
+      [e.target.name]: e.target.value,
+    });
+  };
+
   const handleContactChange = (e) => {
     setContactForm({
       ...contactForm,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleRegisterSubmit = (e) => {
+    e.preventDefault();
+    if (registerForm.password !== registerForm.confirmPassword) {
+      alert("Passwords don't match!");
+      return;
+    }
+    console.log("Register form submitted:", registerForm);
+    // Add your registration logic here
+  };
+
+  const switchToRegister = () => {
+    setShowLoginModal(false);
+    setShowRegisterModal(true);
+  };
+
+  const switchToLogin = () => {
+    setShowRegisterModal(false);
+    setShowLoginModal(true);
   };
 
   const handleContactSubmit = (e) => {
@@ -78,7 +112,7 @@ export default function App() {
         darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"
       }`}
     >
-      {/* Navbar */}
+      {/* Navbar - Update the desktop and mobile menus to include Register button */}
       <nav className={`${darkMode ? "bg-gray-800" : "bg-white"} shadow-md`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center h-16">
@@ -96,7 +130,7 @@ export default function App() {
               </button>
             </div>
 
-            {/* Desktop menu */}
+            {/* Desktop menu - Added Register button */}
             <div className="hidden md:flex items-center space-x-4">
               <a href="#" className="hover:text-blue-500">
                 Home
@@ -114,6 +148,12 @@ export default function App() {
                 Login
               </button>
               <button
+                onClick={() => setShowRegisterModal(true)}
+                className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+              >
+                Register
+              </button>
+              <button
                 onClick={toggleDarkMode}
                 className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
               >
@@ -123,7 +163,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Mobile menu */}
+        {/* Mobile menu - Added Register option */}
         {isMenuOpen && (
           <div className="md:hidden p-4">
             <a href="#" className="block py-2">
@@ -141,10 +181,15 @@ export default function App() {
             >
               Login
             </button>
+            <button
+              onClick={() => setShowRegisterModal(true)}
+              className="w-full text-left py-2"
+            >
+              Register
+            </button>
           </div>
         )}
       </nav>
-
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="text-center">
@@ -350,6 +395,117 @@ export default function App() {
               >
                 Login
               </button>
+              <p className="text-center mt-4">
+                Don't have an account?{" "}
+                <button
+                  onClick={switchToRegister}
+                  className="text-blue-500 hover:text-blue-600"
+                >
+                  Register here
+                </button>
+              </p>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* New Register Modal */}
+      {showRegisterModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div
+            className={`${
+              darkMode ? "bg-gray-800" : "bg-white"
+            } rounded-lg p-8 max-w-md w-full`}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Register</h2>
+              <button
+                onClick={() => setShowRegisterModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <CloseIcon />
+              </button>
+            </div>
+            <form onSubmit={handleRegisterSubmit} className="space-y-4">
+              <div>
+                <label className="block mb-2">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={registerForm.name}
+                  onChange={handleRegisterChange}
+                  className={`w-full p-2 border rounded-md ${
+                    darkMode
+                      ? "bg-gray-700 border-gray-600 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  }`}
+                  placeholder="Enter your name"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block mb-2">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={registerForm.email}
+                  onChange={handleRegisterChange}
+                  className={`w-full p-2 border rounded-md ${
+                    darkMode
+                      ? "bg-gray-700 border-gray-600 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  }`}
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block mb-2">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={registerForm.password}
+                  onChange={handleRegisterChange}
+                  className={`w-full p-2 border rounded-md ${
+                    darkMode
+                      ? "bg-gray-700 border-gray-600 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  }`}
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block mb-2">Confirm Password</label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={registerForm.confirmPassword}
+                  onChange={handleRegisterChange}
+                  className={`w-full p-2 border rounded-md ${
+                    darkMode
+                      ? "bg-gray-700 border-gray-600 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  }`}
+                  placeholder="Confirm your password"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600"
+              >
+                Register
+              </button>
+              <p className="text-center mt-4">
+                Already have an account?{" "}
+                <button
+                  onClick={switchToLogin}
+                  className="text-blue-500 hover:text-blue-600"
+                >
+                  Login here
+                </button>
+              </p>
             </form>
           </div>
         </div>
