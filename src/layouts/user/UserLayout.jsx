@@ -39,17 +39,12 @@ export const UserLayout = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [pageTitle, setPageTitle] = useState("Dashboard");
 
-  useEffect(() => {
-    if (location.pathname === "/user/:id") {
-      navigate("/user/:id/dashboard", { replace: true });
+  useEffect(()=>{
+    const userToken=localStorage.getItem("User_Token")
+    if (!userToken) {
+      navigate('/')
     }
-
-    // Update page title based on current route
-    const path = location.pathname;
-    if (path.includes("dashboard")) setPageTitle("Dashboard");
-    else if (path.includes("resources")) setPageTitle("Resources");
-    else if (path.includes("settings")) setPageTitle("Settings");
-  }, [location, navigate]);
+  },[])
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);

@@ -153,9 +153,7 @@ export default function App() {
 
       if (response.ok && data.token) {
         // Store authentication data
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("isAdmin", data.isAdmin);
-        localStorage.setItem("userId", data.userId);
+        localStorage.setItem("User_Token", data.token);
 
         // Set user data
         setUser({
