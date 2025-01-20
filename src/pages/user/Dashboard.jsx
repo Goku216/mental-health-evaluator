@@ -4,7 +4,6 @@ import {
   AvailableTests,
   QuickStats,
   RecentTests,
-  TestHistory,
   UserOverview,
 } from "../../components/user";
 
@@ -67,7 +66,7 @@ export const Dashboard = () => {
         lastAssessment={userData.lastAssessment}
       />
       <QuickStats stats={userData.stats} />
-      <TestHistory data={userData.testHistory} />
+
       <AvailableTests
         tests={userData.availableTests}
         onStartTest={handleStartTest}
