@@ -14,6 +14,7 @@ export const PHQ9Page = () => {
     new Array(PHQ9_QUESTIONS.length).fill(null)
   );
   const [currentAnswer, setCurrentAnswer] = useState(null);
+  const [responseMessage, setResponseMessage] = useState("");
 
   // Reset currentAnswer when question changes
   useEffect(() => {
@@ -41,7 +42,7 @@ export const PHQ9Page = () => {
         ...answers.slice(0, currentQuestion),
         currentAnswer,
       ];
-
+      handleAssessmentCompletion(sampleAnswer);
       console.log("Submitted Answers:", sampleAnswer);
     }
   };
@@ -49,6 +50,30 @@ export const PHQ9Page = () => {
   const handlePrevious = () => {
     if (currentQuestion > 0) {
       setCurrentQuestion((prev) => prev - 1);
+    }
+  };
+
+  const handleAssessmentCompletion = async (sampleAnswer) => {
+    try {
+      const response = await fetch("/api/submit-answers", {
+        // Replace with your API endpoint
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ answers: sampleAnswer }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setResponseMessage(data.message); // Assuming the API returns a "message" field
+      console.log("API Response:", data);
+    } catch (error) {
+      console.error("Error submitting answers:", error);
+      setResponseMessage("There was an error submitting your answers.");
     }
   };
 

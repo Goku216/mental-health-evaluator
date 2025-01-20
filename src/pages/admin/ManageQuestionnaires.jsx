@@ -1,5 +1,5 @@
 // QuestionnairePage.jsx
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Container,
   Grid,
@@ -22,28 +22,6 @@ import {
   Delete as DeleteIcon,
   Close as CloseIcon,
 } from "@mui/icons-material";
-
-// Initial questionnaires data
-const initialQuestionnaires = [
-  {
-    id: 1,
-    title: "PHQ-9",
-    description:
-      "Patient Health Questionnaire for depression screening and monitoring.",
-    image: "/api/placeholder/400/200",
-    questions: 9,
-    timeToComplete: "5-10 minutes",
-  },
-  {
-    id: 2,
-    title: "GAD-7",
-    description:
-      "Generalized Anxiety Disorder assessment for anxiety screening.",
-    image: "/api/placeholder/400/200",
-    questions: 7,
-    timeToComplete: "5-8 minutes",
-  },
-];
 
 const QuestionnaireCard = ({ questionnaire, onEdit, onDelete }) => {
   return (
@@ -206,7 +184,22 @@ const QuestionnaireDialog = ({
 };
 
 export const ManageQuestionnaires = () => {
-  const [questionnaires, setQuestionnaires] = useState(initialQuestionnaires);
+  const [questionnaires, setQuestionnaires] = useState([]);
+  useEffect(() => {
+    const fetchQuestionnaires = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:3000/api/admin/questionnaires"
+        );
+        const data = await response.json();
+        setQuestionnaires(data);
+      } catch (error) {
+        console.error("Error fetching questionnaires:", error);
+      }
+    };
+
+    fetchQuestionnaires();
+  }, []);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingQuestionnaire, setEditingQuestionnaire] = useState(null);
 

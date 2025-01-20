@@ -10,6 +10,7 @@ import {
 export const Dashboard = () => {
   const navigate = useNavigate();
   // Sample data - replace with actual data from your backend
+
   const userData = {
     name: "John",
     lastAssessment: "March 1, 2024",
@@ -56,7 +57,11 @@ export const Dashboard = () => {
 
   const handleStartTest = (testId) => {
     console.log(`Starting test: ${testId}`);
-    // Add navigation logic here
+    if (testId === "phq9") {
+      navigate("/user/:id/phq9");
+    } else if (testId === "gad7") {
+      navigate("/user/:id/gad7");
+    }
   };
 
   return (
