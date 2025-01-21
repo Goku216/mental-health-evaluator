@@ -1,18 +1,24 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Box } from "@mui/material";
 import {
   QuestionnaireLayout,
   ProgressHeader,
   QuestionCard,
 } from "../../components/user";
-import { useParams } from "react-router-dom";
 import axios from "axios";
 
 export const PHQ9Page = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+
   const [PHQ9_QUESTIONS, setPHQ9_QUESTIONS] = useState([]);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState(
+    new Array(PHQ9_QUESTIONS.length).fill(null)
+  );
+  const [currentAnswer, setCurrentAnswer] = useState(null);
+  const [responseMessage, setResponseMessage] = useState("");
   useEffect(() => {
     const fetchPHQ9_QUESTIONS = async () => {
       try {
@@ -26,14 +32,6 @@ export const PHQ9Page = () => {
 
     fetchPHQ9_QUESTIONS();
   }, []);
-
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  // Initialize answers as an array with length matching questions, filled with null
-  const [answers, setAnswers] = useState(
-    new Array(PHQ9_QUESTIONS.length).fill(null)
-  );
-  const [currentAnswer, setCurrentAnswer] = useState(null);
-  const [responseMessage, setResponseMessage] = useState("");
 
   // Reset currentAnswer when question changes
   useEffect(() => {

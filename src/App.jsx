@@ -1,5 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "./helpers/useToast";
+import {
+  Box,
+  Container,
+  Grid,
+  Typography,
+  Button,
+  Paper,
+  Fade,
+  CardMedia,
+  IconButton,
+  MobileStepper,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 
 import {
   Settings as SettingsIcon,
@@ -7,19 +22,20 @@ import {
   Close as CloseIcon,
   LightMode as LightModeIcon,
   DarkMode as DarkModeIcon,
-  ArrowBack as ArrowBackIcon,
-  ArrowForward as ArrowForwardIcon,
+  KeyboardArrowLeft,
+  KeyboardArrowRight,
 } from "@mui/icons-material";
 
 import { parseJwt } from "./utils/decodeJWT";
 import axios from "axios";
 
 export default function App() {
-  const [darkMode, setDarkMode] = useState(false);
   const navigate = useNavigate();
+  const { toast, showToast, closeToast } = useToast();
+  const [darkMode, setDarkMode] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [activeStep, setActiveStep] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -39,6 +55,15 @@ export default function App() {
     password: "",
     confirmPassword: "",
   });
+
+  const colors = {
+    primary: "#4A90E2", // Calming blue
+    secondary: "#67B26F", // Healing green
+    accent: "#98CAFF", // Soft sky blue
+    text: darkMode ? "#FFFFFF" : "#2C3E50",
+    background: darkMode ? "#1A202C" : "#F8FAFC",
+    gradient: "linear-gradient(135deg, #4A90E2 0%, #67B26F 100%)",
+  };
 
   const mentalHealthTips = [
     {
@@ -89,28 +114,27 @@ export default function App() {
     checkAuth();
   }, []);
 
-  // Auto-slide functionality
-  useEffect(() => {
-    const interval = setInterval(() => {
-      nextSlide();
-    }, 5000); // Change slide every 5 seconds
-
-    return () => clearInterval(interval);
-  }, [currentSlide]);
-
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % mentalHealthTips.length);
+  // Carousel controls
+  const handleNext = () => {
+    setActiveStep((prevStep) => (prevStep + 1) % mentalHealthTips.length);
   };
 
-  const prevSlide = () => {
-    setCurrentSlide(
-      (prev) => (prev - 1 + mentalHealthTips.length) % mentalHealthTips.length
+  const handleBack = () => {
+    setActiveStep(
+      (prevStep) =>
+        (prevStep - 1 + mentalHealthTips.length) % mentalHealthTips.length
     );
   };
+
+  // Auto-advance carousel
+  useEffect(() => {
+    const timer = setInterval(handleNext, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleRegisterChange = (e) => {
     setRegisterForm({
@@ -183,6 +207,7 @@ export default function App() {
       } else {
         // Handle specific error messages from your backend
         setError(data.message || "Login failed");
+        showToast("Login failed!", "error");
       }
     } catch (err) {
       console.error("Login error:", err); // Debug logging
@@ -234,7 +259,7 @@ export default function App() {
           password: "",
           confirmPassword: "",
         });
-        alert("Registration successful! Please login.");
+        showToast("Register Successful!", "success");
       } else {
         // Handle registration error
         setError(data.message || "Registration failed");
@@ -244,6 +269,7 @@ export default function App() {
       setError(
         err.response?.data?.message || "An error occurred during registration"
       );
+      showToast("Register Failed!", "error");
     } finally {
       setIsLoading(false);
     }
@@ -282,7 +308,7 @@ export default function App() {
     >
       {/* Modern Navbar */}
       <nav className={`${darkMode ? "bg-[#232838]" : "bg-white"} shadow-lg`}>
-        <div className="max-w-7xl mx-auto px-6">
+        <div className=" mx-auto px-6">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center space-x-2">
               <SettingsIcon className="w-6 h-6 text-blue-500" />
@@ -301,7 +327,7 @@ export default function App() {
             {/* Desktop menu */}
             <div className="hidden md:flex items-center space-x-8">
               <a href="#" className="hover:text-blue-500 transition-colors">
-                Solutions
+                Home
               </a>
               <a
                 href="#about"
@@ -316,32 +342,18 @@ export default function App() {
                 Contact
               </a>
 
-              {user ? (
-                <>
-                  <span className="text-blue-500">Welcome, {user.name}</span>
-                  <button
-                    onClick={handleLogout}
-                    className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600 transition-colors"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setShowLoginModal(true)}
-                    className="bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition-colors"
-                  >
-                    Login
-                  </button>
-                  <button
-                    onClick={() => setShowRegisterModal(true)}
-                    className="border-2 border-blue-500 text-blue-500 px-6 py-2 rounded-full hover:bg-blue-50 transition-colors"
-                  >
-                    Get Started
-                  </button>
-                </>
-              )}
+              <button
+                onClick={() => setShowLoginModal(true)}
+                className="bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition-colors"
+              >
+                Login
+              </button>
+              <button
+                onClick={() => setShowRegisterModal(true)}
+                className="border-2 border-blue-500 text-blue-500 px-6 py-2 rounded-full hover:bg-blue-50 transition-colors"
+              >
+                Get Started
+              </button>
 
               <button
                 onClick={toggleDarkMode}
@@ -359,120 +371,237 @@ export default function App() {
 
         {/* Mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden p-4 bg-white dark:bg-gray-800 shadow-lg rounded-b-lg">
+          <div className="md:hidden p-4 bg-gray-800 dark:bg-white shadow-lg rounded-b-lg">
             <a
               href="#"
-              className="block py-2 hover:text-blue-500 transition-colors"
+              className="block text-gray-600 py-2 hover:text-blue-500 transition-colors"
             >
-              Solutions
+              Home
             </a>
             <a
               href="#about"
-              className="block py-2 hover:text-blue-500 transition-colors"
+              className="block text-gray-600 py-2 hover:text-blue-500 transition-colors"
             >
               About
             </a>
             <a
               href="#contact"
-              className="block py-2 hover:text-blue-500 transition-colors"
+              className="block text-gray-600 py-2 hover:text-blue-500 transition-colors"
             >
               Contact
             </a>
-            {user ? (
-              <>
-                <span className="block py-2 text-blue-500">
-                  Welcome, {user.name}
-                </span>
-                <button
-                  onClick={handleLogout}
-                  className="block w-full text-left py-2 text-red-500 hover:bg-red-50 transition-colors"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => setShowLoginModal(true)}
-                  className="block w-full text-left py-2 hover:text-blue-500 transition-colors"
-                >
-                  Login
-                </button>
-                <button
-                  onClick={() => setShowRegisterModal(true)}
-                  className="block w-full text-left py-2 hover:text-blue-500 transition-colors"
-                >
-                  Get Started
-                </button>
-              </>
-            )}
+
+            <button
+              onClick={() => setShowLoginModal(true)}
+              className="block text-gray-600 w-full text-left py-2 hover:text-blue-500 transition-colors"
+            >
+              Login
+            </button>
+            <button
+              className="block text-gray-600 w-full text-left py-2 hover:text-blue-500 transition-colors"
+              onClick={() => setShowRegisterModal(true)}
+            >
+              Get Started
+            </button>
           </div>
         )}
       </nav>
-
-      {/* Hero Section */}
-      <div className="max-w-7xl mx-auto px-6 py-20">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div>
-            <h1 className="text-5xl font-bold mb-6 leading-tight">
-              The New Era of Mental Healthcare
-            </h1>
-            <p className="text-xl mb-8 text-gray-600 dark:text-gray-300">
-              AI-driven mental health support for flexibility and personalized
-              care
-            </p>
-            <div className="flex space-x-4">
-              <button
-                onClick={
-                  user
-                    ? () => navigate(`/user/${7}/dashboard`)
-                    : () => setShowLoginModal(true)
-                }
-                className="bg-blue-500 text-white px-8 py-3 rounded-full text-lg hover:bg-blue-600 transition-colors"
+      {/* Hero Section with Carousel */}
+      <Box
+        sx={{
+          pt: { xs: 8, md: 12 },
+          pb: { xs: 6, md: 8 },
+          background: colors.gradient,
+        }}
+      >
+        <Container maxWidth="xl">
+          <Grid container spacing={4} alignItems="center">
+            <Grid item xs={12} md={6}>
+              <Box sx={{ color: "white", mb: 4 }}>
+                <Typography
+                  variant="h2"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 2,
+                    fontSize: { xs: "2.5rem", md: "3.5rem" },
+                  }}
+                >
+                  Your Journey to Mental Wellness
+                </Typography>
+                <Typography variant="h5" sx={{ mb: 4, opacity: 0.9 }}>
+                  Professional support and guidance for your mental health
+                  journey
+                </Typography>
+                <Button
+                  onClick={() => setShowRegisterModal(true)}
+                  variant="contained"
+                  size="large"
+                  sx={{
+                    bgcolor: "white",
+                    color: colors.primary,
+                    "&:hover": {
+                      bgcolor: "rgba(255,255,255,0.9)",
+                    },
+                    px: 4,
+                    py: 1.5,
+                    borderRadius: 2,
+                  }}
+                >
+                  Get Started
+                </Button>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Paper
+                elevation={6}
+                sx={{
+                  position: "relative",
+                  borderRadius: 4,
+                  overflow: "hidden",
+                  width: "100%", // Ensure Paper takes full width
+                }}
               >
-                Get Started
-              </button>
-              <button className="border-2 border-blue-500 text-blue-500 px-8 py-3 rounded-full text-lg hover:bg-blue-50 transition-colors">
-                Learn More
-              </button>
-            </div>
-          </div>
-          <div className="hidden md:block">
-            <img
-              src="/api/placeholder/600/400"
-              alt="Mental Health Support"
-              className="rounded-lg shadow-xl"
-            />
-          </div>
-        </div>
-      </div>
+                <Box
+                  sx={{
+                    position: "relative",
+                    width: "100%", // Ensure container takes full width
+                    height: "400px", // Fixed height for consistency
+                  }}
+                >
+                  {mentalHealthTips.map((tip, index) => (
+                    <Fade key={index} in={activeStep === index} timeout={500}>
+                      <Box
+                        sx={{
+                          display: activeStep === index ? "block" : "none",
+                          position: "absolute",
+                          width: "100%",
+                          height: "100%",
+                        }}
+                      >
+                        <CardMedia
+                          component="img"
+                          sx={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover", // Ensure consistent image sizing
+                          }}
+                          image={tip.image}
+                          alt={tip.title}
+                        />
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            bgcolor: "rgba(0,0,0,0.6)",
+                            color: "white",
+                            p: 3,
+                          }}
+                        >
+                          <Typography variant="h5" gutterBottom>
+                            {tip.title}
+                          </Typography>
+                          <Typography>{tip.content}</Typography>
+                        </Box>
+                      </Box>
+                    </Fade>
+                  ))}
+                </Box>
+
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: 0,
+                    right: 0,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    px: 2,
+                    transform: "translateY(-50%)",
+                  }}
+                >
+                  <IconButton
+                    onClick={handleBack}
+                    sx={{
+                      bgcolor: "rgba(255,255,255,0.3)",
+                      "&:hover": { bgcolor: "rgba(255,255,255,0.4)" },
+                      color: "white",
+                    }}
+                  >
+                    <KeyboardArrowLeft />
+                  </IconButton>
+                  <IconButton
+                    onClick={handleNext}
+                    sx={{
+                      bgcolor: "rgba(255,255,255,0.3)",
+                      "&:hover": { bgcolor: "rgba(255,255,255,0.4)" },
+                      color: "white",
+                    }}
+                  >
+                    <KeyboardArrowRight />
+                  </IconButton>
+                </Box>
+
+                <MobileStepper
+                  steps={mentalHealthTips.length}
+                  position="static"
+                  activeStep={activeStep}
+                  sx={{
+                    bgcolor: "transparent",
+                    position: "absolute",
+                    bottom: 0,
+                    width: "100%",
+                    "& .MuiMobileStepper-dot": {
+                      bgcolor: "rgba(255,255,255,0.5)",
+                    },
+                    "& .MuiMobileStepper-dotActive": {
+                      bgcolor: "white",
+                    },
+                  }}
+                  nextButton={<Box />}
+                  backButton={<Box />}
+                />
+              </Paper>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
 
       {/* Stats Section */}
       <div className="bg-white dark:bg-[#232838] py-16">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <h3 className="text-4xl font-bold text-blue-500 mb-2">95%</h3>
+              <h3 className="text-4xl font-bold text-blue-500 mb-2">
+                90% Accuracy
+              </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                User Satisfaction
+                Reliable Assessments
               </p>
             </div>
             <div className="text-center">
-              <h3 className="text-4xl font-bold text-blue-500 mb-2">24/7</h3>
+              <h3 className="text-4xl font-bold text-blue-500 mb-2">
+                24/7 Access
+              </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Support Available
+                Instant Self-Evaluation
               </p>
             </div>
             <div className="text-center">
-              <h3 className="text-4xl font-bold text-blue-500 mb-2">50K+</h3>
-              <p className="text-gray-600 dark:text-gray-300">Users Helped</p>
+              <h3 className="text-4xl font-bold text-blue-500 mb-2">
+                Instant Results
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Get Insights in Minutes
+              </p>
             </div>
           </div>
         </div>
       </div>
 
       {/* About Section */}
-      <div id="about" className="max-w-7xl mx-auto px-6 py-20">
+      <div id="about" className="max-w-7xl  mx-auto px-6 py-20">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-3xl font-bold mb-6">About Our Platform</h2>
@@ -502,7 +631,9 @@ export default function App() {
       {/* Contact Form Section */}
       <div id="contact" className="bg-white dark:bg-[#232838] py-20">
         <div className="max-w-2xl mx-auto px-6">
-          <h2 className="text-3xl font-bold mb-8 text-center">Get in Touch</h2>
+          <h2 className="text-3xl text-gray-300 dark:text-gray-600 font-bold mb-8 text-center">
+            Get in Touch
+          </h2>
           <form onSubmit={handleContactSubmit} className="space-y-6">
             <div>
               <input
@@ -510,7 +641,7 @@ export default function App() {
                 name="name"
                 value={contactForm.name}
                 onChange={handleContactChange}
-                className="w-full p-3 border rounded-lg bg-transparent"
+                className="w-full text-white p-3 border rounded-lg bg-transparent"
                 placeholder="Your name"
                 required
               />
@@ -521,7 +652,7 @@ export default function App() {
                 name="email"
                 value={contactForm.email}
                 onChange={handleContactChange}
-                className="w-full p-3 border rounded-lg bg-transparent"
+                className="w-full text-white p-3 border rounded-lg bg-transparent"
                 placeholder="Your email"
                 required
               />
@@ -531,7 +662,7 @@ export default function App() {
                 name="message"
                 value={contactForm.message}
                 onChange={handleContactChange}
-                className="w-full p-3 border rounded-lg bg-transparent h-32"
+                className="w-full text-white p-3 border rounded-lg bg-transparent h-32"
                 placeholder="Your message"
                 required
               ></textarea>
@@ -685,6 +816,12 @@ export default function App() {
           </div>
         </div>
       )}
+
+      <Snackbar open={toast.open} autoHideDuration={3000} onClose={closeToast}>
+        <Alert onClose={closeToast} severity={toast.severity}>
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

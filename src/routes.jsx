@@ -16,6 +16,7 @@ import {
   GAD7Page,
   ResultPage,
 } from "./pages/user";
+import PageNotFound from "./utils/PageNotFound";
 
 export const router = createBrowserRouter([
   {
@@ -91,5 +92,9 @@ export const router = createBrowserRouter([
       },
       {},
     ],
+  },
+  {
+    path: "/*",
+    element: <PageNotFound />,
   },
 ]);

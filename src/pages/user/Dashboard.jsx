@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { Container, Alert, AlertTitle } from "@mui/material";
 import {
@@ -7,74 +8,36 @@ import {
   RecentTests,
   UserOverview,
 } from "../../components/user";
-import { parseJwt } from "../../utils/decodeJWT";
 import axios from "axios";
 
 export const Dashboard = () => {
-  const [userId, setUserId] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const { id } = useParams();
   const navigate = useNavigate();
+
+  // api call for dashboard data
+
   useEffect(() => {
-    const userToken = localStorage.getItem("User_Token");
-
-    if (userToken) {
-      const decodedToken = parseJwt(userToken);
-
-      if (decodedToken) {
-        const { userId } = decodedToken;
-        setUserId(userId);
-      } else {
-        console.warn("Failed to decode JWT.");
+    const fetchStats = async () => {
+      try {
+        const response = await axios.get(`/user/${id}/getstats`);
+        if (response.data) {
+          setUserData(response.data);
+        } else {
+          setUserData({}); // Set empty object if no data is returned
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setUserData({}); // Handle error gracefully
       }
-    } else {
-      console.warn("No token found.");
-    }
-  }, []);
+    };
 
-  // Sample data - replace with actual data from your backend
-  const userData = {
-    name: "John",
-    id: userId, // Added user ID
-    lastAssessment: "March 1, 2024",
-    stats: {
-      testsCompleted: 12,
-      streak: 5,
-      latestScore: 3,
-      severity: "Mild",
-    },
-    testHistory: [
-      { date: "2024-01-01", PHQ9: 3, GAD7: 4 },
-      { date: "2024-01-15", PHQ9: 4, GAD7: 3 },
-      { date: "2024-02-01", PHQ9: 2, GAD7: 2 },
-      { date: "2024-02-15", PHQ9: 1, GAD7: 2 },
-      { date: "2024-03-01", PHQ9: 2, GAD7: 1 },
-    ],
-    availableTests: [
-      {
-        id: "phq9",
-        name: "PHQ-9",
-        description: "Patient Health Questionnaire for Depression",
-        timeToComplete: "5-10 minutes",
-        questions: 9,
-      },
-      {
-        id: "gad7",
-        name: "GAD-7",
-        description: "Generalized Anxiety Disorder Assessment",
-        timeToComplete: "5-7 minutes",
-        questions: 7,
-      },
-    ],
-    recentTests: [
-      { id: 1, type: "PHQ-9", score: 3, date: "2024-03-01", severity: "Mild" },
-      {
-        id: 2,
-        type: "GAD-7",
-        score: 2,
-        date: "2024-03-01",
-        severity: "Minimal",
-      },
-    ],
-  };
+    fetchStats();
+  }, [id]);
+
+  if (!userData) {
+    return <p>Loading...</p>; // Show loading indicator while fetching data
+  }
 
   // Function to create evaluation session
   const createEvaluationSession = async (testId) => {

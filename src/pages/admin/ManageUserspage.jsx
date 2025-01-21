@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useState, useEffect } from "react";
 import { styled } from "@mui/material/styles";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -9,6 +10,7 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import PreviewIcon from "@mui/icons-material/Preview";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import axios from "axios";
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: theme.palette.common.black,
@@ -29,49 +31,23 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-function createData(name, calories, fat, carbs, protein) {
-  return { name, calories, fat, carbs, protein };
-}
-
-const rows = [
-  createData(
-    "Pratik Khadka",
-    "pratikkhadka@gmai.com",
-    `${Date.now()}`,
-    <PreviewIcon />,
-    <DeleteForeverIcon />
-  ),
-  createData(
-    "Pratik Khadka",
-    "pratikkhadka@gmai.com",
-    `${Date.now()}`,
-    <PreviewIcon />,
-    <DeleteForeverIcon />
-  ),
-  createData(
-    "Pratik Khadka",
-    "pratikkhadka@gmai.com",
-    `${Date.now()}`,
-    <PreviewIcon />,
-    <DeleteForeverIcon />
-  ),
-  createData(
-    "Pratik Khadka",
-    "pratikkhadka@gmai.com",
-    `${Date.now()}`,
-    <PreviewIcon />,
-    <DeleteForeverIcon />
-  ),
-  createData(
-    "Pratik Khadka",
-    "pratikkhadka@gmai.com",
-    `${Date.now()}`,
-    <PreviewIcon />,
-    <DeleteForeverIcon />
-  ),
-];
-
 export function ManageUsersPage() {
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get("/admin/getusers");
+        const data = await response.data;
+        setUsers(data);
+        console.log(data);
+      } catch (error) {
+        console.error("Error fetching questionnaires:", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 700 }} aria-label="customized table">
@@ -85,15 +61,21 @@ export function ManageUsersPage() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
-            <StyledTableRow key={row.name}>
+          {users.map((row) => (
+            <StyledTableRow key={row.username}>
               <StyledTableCell component="th" scope="row">
-                {row.name}
+                {row.username}
               </StyledTableCell>
-              <StyledTableCell align="left">{row.calories}</StyledTableCell>
-              <StyledTableCell align="left">{row.fat}</StyledTableCell>
-              <StyledTableCell align="left">{row.carbs}</StyledTableCell>
-              <StyledTableCell align="left">{row.protein}</StyledTableCell>
+              <StyledTableCell align="left">{row.email}</StyledTableCell>
+              <StyledTableCell align="left">
+                {row.createdAt.split("T")[0]}
+              </StyledTableCell>
+              <StyledTableCell align="left">
+                <PreviewIcon />
+              </StyledTableCell>
+              <StyledTableCell align="left">
+                <DeleteForeverIcon />
+              </StyledTableCell>
             </StyledTableRow>
           ))}
         </TableBody>

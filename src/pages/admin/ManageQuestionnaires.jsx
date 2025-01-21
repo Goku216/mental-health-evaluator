@@ -23,6 +23,7 @@ import {
   Close as CloseIcon,
 } from "@mui/icons-material";
 import axios from "axios";
+import Image from "../../assets/questionnaire.jpg";
 
 const QuestionnaireCard = ({ questionnaire, onEdit, onDelete }) => {
   return (
@@ -30,7 +31,7 @@ const QuestionnaireCard = ({ questionnaire, onEdit, onDelete }) => {
       <CardMedia
         component="img"
         height="200"
-        image={questionnaire.image}
+        image={Image}
         alt={questionnaire.title}
       />
       <CardContent sx={{ flexGrow: 1 }}>
@@ -208,7 +209,6 @@ export const ManageQuestionnaires = () => {
       {
         ...newQuestionnaire,
         id: questionnaires.length + 1,
-        image: "/api/placeholder/400/200",
       },
     ]);
   };

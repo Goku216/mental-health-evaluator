@@ -6,21 +6,15 @@ import {
   Typography,
   Box,
   IconButton,
-  Drawer,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  ListItemButton,
-  Divider,
-  useTheme,
-  useMediaQuery,
-  Avatar,
   Menu,
   MenuItem,
+  ListItemIcon,
+  Button,
+  Avatar,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import {
-  Menu as MenuIcon,
   Dashboard,
   MenuBook,
   Logout,
@@ -37,8 +31,8 @@ export const UserLayout = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [profileAnchorEl, setProfileAnchorEl] = useState(null);
+  const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState(null);
   const [pageTitle, setPageTitle] = useState("Dashboard");
 
   useEffect(() => {
@@ -48,29 +42,27 @@ export const UserLayout = () => {
     }
     if (userToken) {
       const decodedToken = parseJwt(userToken);
-
       if (decodedToken) {
         const { userId } = decodedToken;
-        console.log("User ID:", userId);
         setUserId(userId);
-      } else {
-        console.warn("Failed to decode JWT.");
       }
-    } else {
-      console.warn("No token found.");
     }
   }, []);
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
-
   const handleProfileMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
+    setProfileAnchorEl(event.currentTarget);
   };
 
   const handleProfileMenuClose = () => {
-    setAnchorEl(null);
+    setProfileAnchorEl(null);
+  };
+
+  const handleMobileMenuOpen = (event) => {
+    setMobileMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleMobileMenuClose = () => {
+    setMobileMenuAnchorEl(null);
   };
 
   const handleLogout = () => {
@@ -89,91 +81,136 @@ export const UserLayout = () => {
       icon: <MenuBook />,
       path: `/user/${userid}/resources`,
     },
-    { text: "Settings", icon: <Settings />, path: `/user/${userid}/settings` },
+    {
+      text: "Settings",
+      icon: <Settings />,
+      path: `/user/${userid}/settings`,
+    },
   ];
 
-  const drawer = (
-    <Box sx={{ width: 250 }}>
-      <Box sx={{ p: 2, display: "flex", alignItems: "center", gap: 1 }}>
-        <Dashboard color="primary" />
-        <Typography variant="h6" noWrap component="div">
-          MindCare
-        </Typography>
-      </Box>
-      <Divider />
-      <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton
-              onClick={() => {
-                navigate(item.path);
-                if (isMobile) handleDrawerToggle();
-              }}
-              selected={location.pathname === item.path}
-            >
-              <ListItemIcon
-                sx={{
-                  color:
-                    location.pathname === item.path
-                      ? "primary.main"
-                      : "inherit",
-                }}
-              >
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-    </Box>
-  );
-
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh" }}>
-      <AppBar
-        position="fixed"
-        sx={{
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: "white",
-          color: "text.primary",
-          boxShadow: 1,
-        }}
-      >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: "none" } }}
-          >
-            <MenuIcon />
-          </IconButton>
-
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            {pageTitle === "Dashboard" && (
-              <Dashboard color="primary" sx={{ mr: 1 }} />
-            )}
-            {pageTitle === "Resources" && (
-              <MenuBook color="primary" sx={{ mr: 1 }} />
-            )}
-            {pageTitle === "Settings" && (
-              <Settings color="primary" sx={{ mr: 1 }} />
-            )}
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      <AppBar position="fixed">
+        <Toolbar sx={{ justifyContent: "space-between" }}>
+          {/* Logo Section */}
+          <Box sx={{ width: "200px" }}>
             <Typography
               variant="h6"
               noWrap
               component="div"
-              sx={{ flexGrow: 1 }}
+              sx={{ display: "flex", alignItems: "center" }}
             >
-              {pageTitle}
+              <Dashboard sx={{ mr: 1 }} />
+              MindCare
             </Typography>
           </Box>
 
-          <Box sx={{ flexGrow: 1 }} />
+          {/* Centered Navigation */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              flex: 1,
+              mx: 2,
+            }}
+          >
+            {/* Desktop Navigation */}
+            {!isMobile && (
+              <Box sx={{ display: "flex", gap: 2 }}>
+                {menuItems.map((item) => (
+                  <Button
+                    key={item.text}
+                    color="inherit"
+                    startIcon={item.icon}
+                    onClick={() => navigate(item.path)}
+                    sx={{
+                      color:
+                        location.pathname === item.path ? "#000000" : "inherit",
+                      backgroundColor:
+                        location.pathname === item.path
+                          ? "rgba(255, 255, 255, 0.9)"
+                          : "transparent",
+                      "&:hover": {
+                        backgroundColor:
+                          location.pathname === item.path
+                            ? "rgba(255, 255, 255, 0.9)"
+                            : "rgba(255, 255, 255, 0.1)",
+                      },
+                      fontWeight: location.pathname === item.path ? 600 : 400,
+                      px: 3,
+                    }}
+                  >
+                    {item.text}
+                  </Button>
+                ))}
+              </Box>
+            )}
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {/* Mobile Navigation */}
+            {isMobile && (
+              <>
+                <Button
+                  color="inherit"
+                  onClick={handleMobileMenuOpen}
+                  endIcon={<KeyboardArrowDown />}
+                >
+                  Menu
+                </Button>
+                <Menu
+                  anchorEl={mobileMenuAnchorEl}
+                  open={Boolean(mobileMenuAnchorEl)}
+                  onClose={handleMobileMenuClose}
+                  anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                  transformOrigin={{ vertical: "top", horizontal: "center" }}
+                >
+                  {menuItems.map((item) => (
+                    <MenuItem
+                      key={item.text}
+                      onClick={() => {
+                        navigate(item.path);
+                        handleMobileMenuClose();
+                      }}
+                      selected={location.pathname === item.path}
+                      sx={{
+                        color:
+                          location.pathname === item.path
+                            ? "#000000"
+                            : "inherit",
+                        backgroundColor:
+                          location.pathname === item.path
+                            ? "rgba(0, 0, 0, 0.08)"
+                            : "transparent",
+                        "&:hover": {
+                          backgroundColor:
+                            location.pathname === item.path
+                              ? "rgba(0, 0, 0, 0.12)"
+                              : "rgba(0, 0, 0, 0.04)",
+                        },
+                        fontWeight: location.pathname === item.path ? 600 : 400,
+                      }}
+                    >
+                      <ListItemIcon
+                        sx={{
+                          color:
+                            location.pathname === item.path
+                              ? "#000000"
+                              : "inherit",
+                        }}
+                      >
+                        {item.icon}
+                      </ListItemIcon>
+                      {item.text}
+                    </MenuItem>
+                  ))}
+                </Menu>
+              </>
+            )}
+          </Box>
+
+          {/* Profile Section */}
+          <Box
+            sx={{ width: "200px", display: "flex", justifyContent: "flex-end" }}
+          >
             <Box
               sx={{
                 display: "flex",
@@ -186,7 +223,7 @@ export const UserLayout = () => {
                 sx={{
                   width: 32,
                   height: 32,
-                  bgcolor: "primary.main",
+                  bgcolor: "secondary.main",
                 }}
               >
                 <Person />
@@ -200,8 +237,8 @@ export const UserLayout = () => {
             </Box>
 
             <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
+              anchorEl={profileAnchorEl}
+              open={Boolean(profileAnchorEl)}
               onClose={handleProfileMenuClose}
               transformOrigin={{ horizontal: "right", vertical: "top" }}
               anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
@@ -218,52 +255,13 @@ export const UserLayout = () => {
       </AppBar>
 
       <Box
-        component="nav"
-        sx={{
-          width: { sm: 250 },
-          flexShrink: { sm: 0 },
-        }}
-      >
-        <Drawer
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true,
-          }}
-          sx={{
-            display: { xs: "block", sm: "none" },
-            "& .MuiDrawer-paper": { width: 250 },
-          }}
-        >
-          {drawer}
-        </Drawer>
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: "none", sm: "block" },
-            "& .MuiDrawer-paper": {
-              width: 250,
-              boxSizing: "border-box",
-              borderRight: "1px solid rgba(0, 0, 0, 0.12)",
-              boxShadow: "none",
-            },
-          }}
-          open
-        >
-          {drawer}
-        </Drawer>
-      </Box>
-
-      <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { sm: `calc(100% - 250px)` },
           mt: "64px",
           bgcolor: "background.default",
-          minHeight: "100vh",
+          minHeight: "calc(100vh - 64px)",
         }}
       >
         <Outlet />
