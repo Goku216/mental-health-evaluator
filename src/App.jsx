@@ -12,6 +12,7 @@ import {
 } from "@mui/icons-material";
 
 import { parseJwt } from "./utils/decodeJWT";
+import axios from "axios";
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
@@ -139,7 +140,7 @@ export default function App() {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:3000/api/user/login", {
+      const response = await axios.post("/user/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -198,7 +199,7 @@ export default function App() {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/api/user/register", {
+      const response = await axios.post("/user/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
