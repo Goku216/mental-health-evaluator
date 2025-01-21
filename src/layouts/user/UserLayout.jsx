@@ -28,8 +28,10 @@ import {
   KeyboardArrowDown,
   Settings,
 } from "@mui/icons-material";
+import { parseJwt } from "../../utils/decodeJWT";
 
 export const UserLayout = () => {
+  const [userid, setUserId] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -39,12 +41,25 @@ export const UserLayout = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [pageTitle, setPageTitle] = useState("Dashboard");
 
-  useEffect(()=>{
-    const userToken=localStorage.getItem("User_Token")
+  useEffect(() => {
+    const userToken = localStorage.getItem("User_Token");
     if (!userToken) {
-      navigate('/')
+      navigate("/");
     }
-  },[])
+    if (userToken) {
+      const decodedToken = parseJwt(userToken);
+
+      if (decodedToken) {
+        const { userId } = decodedToken;
+        console.log("User ID:", userId);
+        setUserId(userId);
+      } else {
+        console.warn("Failed to decode JWT.");
+      }
+    } else {
+      console.warn("No token found.");
+    }
+  }, []);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -58,10 +73,23 @@ export const UserLayout = () => {
     setAnchorEl(null);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("User_Token");
+    window.location.reload();
+  };
+
   const menuItems = [
-    { text: "Dashboard", icon: <Dashboard />, path: "/user/:id/dashboard" },
-    { text: "Resources", icon: <MenuBook />, path: "/user/:id/resources" },
-    { text: "Settings", icon: <Settings />, path: "/user/:id/settings" },
+    {
+      text: "Dashboard",
+      icon: <Dashboard />,
+      path: `/user/${userid}/dashboard`,
+    },
+    {
+      text: "Resources",
+      icon: <MenuBook />,
+      path: `/user/${userid}/resources`,
+    },
+    { text: "Settings", icon: <Settings />, path: `/user/${userid}/settings` },
   ];
 
   const drawer = (
@@ -178,12 +206,7 @@ export const UserLayout = () => {
               transformOrigin={{ horizontal: "right", vertical: "top" }}
               anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
             >
-              <MenuItem
-                onClick={() => {
-                  navigate("/");
-                  handleProfileMenuClose();
-                }}
-              >
+              <MenuItem onClick={handleLogout}>
                 <ListItemIcon>
                   <Logout fontSize="small" />
                 </ListItemIcon>

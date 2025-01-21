@@ -1,13 +1,32 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
 import {
   QuestionnaireLayout,
   ProgressHeader,
   QuestionCard,
 } from "../../components/user";
-import { PHQ9_QUESTIONS } from "../../constants/questions";
+import { useParams } from "react-router-dom";
+import axios from "axios";
 
 export const PHQ9Page = () => {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [PHQ9_QUESTIONS, setPHQ9_QUESTIONS] = useState([]);
+  useEffect(() => {
+    const fetchPHQ9_QUESTIONS = async () => {
+      try {
+        const response = await axios.get("/user/phq9");
+        const data = await response.data;
+        setPHQ9_QUESTIONS(data.data);
+      } catch (error) {
+        console.error("Error fetching questionnaires:", error);
+      }
+    };
+
+    fetchPHQ9_QUESTIONS();
+  }, []);
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
   // Initialize answers as an array with length matching questions, filled with null
   const [answers, setAnswers] = useState(
@@ -55,22 +74,20 @@ export const PHQ9Page = () => {
 
   const handleAssessmentCompletion = async (sampleAnswer) => {
     try {
-      const response = await fetch("/api/submit-answers", {
-        // Replace with your API endpoint
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ answers: sampleAnswer }),
+      // First, post the answers and get the assessment result
+      const answersResponse = await axios.post(`/user/${id}/submit-answers`, {
+        answers: sampleAnswer,
+        assessmentType: "PHQ9",
       });
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
+      // Then complete the session
+      const sessionResponse = await axios.patch(`/user/${id}/complete-session`);
 
-      const data = await response.json();
-      setResponseMessage(data.message); // Assuming the API returns a "message" field
-      console.log("API Response:", data);
+      setResponseMessage("Your assessment has been completed successfully.");
+      console.log("Assessment Result:", answersResponse.data);
+      console.log("Session Response:", sessionResponse);
+      console.log("State to be passed:", answersResponse.data.data);
+      navigate(`/session/${id}/result`, { state: answersResponse.data.data });
     } catch (error) {
       console.error("Error submitting answers:", error);
       setResponseMessage("There was an error submitting your answers.");

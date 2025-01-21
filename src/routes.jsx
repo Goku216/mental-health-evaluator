@@ -14,6 +14,7 @@ import {
   UserSettings,
   PHQ9Page,
   GAD7Page,
+  ResultPage,
 } from "./pages/user";
 
 export const router = createBrowserRouter([
@@ -22,29 +23,48 @@ export const router = createBrowserRouter([
     element: <App />,
   },
   {
-    path: "/user/:id",
+    path: "/user",
     element: <UserLayout />,
     children: [
       {
-        path: "dashboard",
+        path: "/user/:id/dashboard",
         element: <Dashboard />,
       },
       {
-        path: "resources",
+        path: "/user/:id/resources",
         element: <ResourcesPage />,
       },
 
       {
-        path: "settings",
+        path: "/user/:id/settings",
         element: <UserSettings />,
       },
       {
-        path: "phq9",
+        path: "/user/:id/phq9",
         element: <PHQ9Page />,
       },
       {
-        path: "gad7",
+        path: "/user/:id/gad7",
         element: <GAD7Page />,
+      },
+    ],
+  },
+
+  {
+    path: "/session",
+    element: <UserLayout />,
+    children: [
+      {
+        path: "/session/:id/phq9",
+        element: <PHQ9Page />,
+      },
+      {
+        path: "/session/:id/gad7",
+        element: <GAD7Page />,
+      },
+      {
+        path: "/session/:id/result",
+        element: <ResultPage />,
       },
     ],
   },

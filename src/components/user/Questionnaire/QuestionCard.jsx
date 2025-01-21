@@ -24,6 +24,13 @@ export const QuestionCard = ({
   isFirstQuestion,
   isLastQuestion,
 }) => {
+  if (!question) {
+    return <p>Loading question...</p>;
+  }
+
+  // Ensure selectedAnswer is always a controlled value by providing a default
+  const currentValue = selectedAnswer === undefined ? null : selectedAnswer;
+
   return (
     <Box
       component={motion.div}
@@ -33,7 +40,6 @@ export const QuestionCard = ({
     >
       <Card sx={{ mb: 2, boxShadow: 3 }}>
         <CardContent>
-          {/* Common Header for all questions */}
           <Paper
             elevation={0}
             sx={{
@@ -65,7 +71,7 @@ export const QuestionCard = ({
           <Divider sx={{ mb: 3 }} />
 
           <RadioGroup
-            value={selectedAnswer}
+            value={currentValue}
             onChange={(e) => onAnswer(Number(e.target.value))}
           >
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -133,7 +139,7 @@ export const QuestionCard = ({
             <Button
               variant="contained"
               onClick={onNext}
-              disabled={selectedAnswer === undefined}
+              disabled={currentValue === null}
               endIcon={<NavigateNextIcon />}
               size="large"
               sx={{ px: 4 }}

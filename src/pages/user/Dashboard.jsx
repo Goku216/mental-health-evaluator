@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Alert, AlertTitle } from "@mui/material";
 import {
@@ -6,13 +7,33 @@ import {
   RecentTests,
   UserOverview,
 } from "../../components/user";
+import { parseJwt } from "../../utils/decodeJWT";
+import axios from "axios";
 
 export const Dashboard = () => {
+  const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
-  // Sample data - replace with actual data from your backend
+  useEffect(() => {
+    const userToken = localStorage.getItem("User_Token");
 
+    if (userToken) {
+      const decodedToken = parseJwt(userToken);
+
+      if (decodedToken) {
+        const { userId } = decodedToken;
+        setUserId(userId);
+      } else {
+        console.warn("Failed to decode JWT.");
+      }
+    } else {
+      console.warn("No token found.");
+    }
+  }, []);
+
+  // Sample data - replace with actual data from your backend
   const userData = {
     name: "John",
+    id: userId, // Added user ID
     lastAssessment: "March 1, 2024",
     stats: {
       testsCompleted: 12,
@@ -55,12 +76,65 @@ export const Dashboard = () => {
     ],
   };
 
-  const handleStartTest = (testId) => {
-    console.log(`Starting test: ${testId}`);
-    if (testId === "phq9") {
-      navigate("/user/:id/phq9");
-    } else if (testId === "gad7") {
-      navigate("/user/:id/gad7");
+  // Function to create evaluation session
+  const createEvaluationSession = async (testId) => {
+    try {
+      if (!userData || !userData.id) {
+        throw new Error("User data is not available.");
+      }
+
+      const sessionData = {
+        id: crypto.randomUUID(), // Generate unique ID
+        user_id: userData.id,
+        questionnaire_id: testId,
+        started_at: new Date().toISOString(),
+        completed_at: null,
+        status: "in_progress",
+      };
+
+      // Make API call to create session
+      const response = await axios.post(
+        "/user/evaluation-sessions",
+        sessionData
+      );
+
+      // Store session ID safely
+      if (typeof localStorage !== "undefined") {
+        localStorage.setItem("currentSessionId", sessionData.id);
+      }
+
+      return response?.data ?? { error: "Failed to create session" };
+    } catch (error) {
+      console.error("Error creating evaluation session:", error.message);
+      return { error: "Error creating evaluation session. Please try again." };
+    }
+  };
+
+  const handleStartTest = async (testId) => {
+    try {
+      const result = await createEvaluationSession(testId);
+
+      if (result.error) {
+        alert(result.error); // Notify user about failure
+        return;
+      }
+      console.log(result);
+
+      // Navigate to appropriate test page based on testId
+      switch (testId) {
+        case "phq9":
+          navigate(`/session/${result.data.id}/phq9`);
+          break;
+        case "gad7":
+          navigate(`/session/${result.data.id}/gad7`);
+          break;
+        default:
+          console.warn("Unknown testId:", testId);
+          navigate(`/user/${userId}/dashboard`);
+      }
+    } catch (error) {
+      console.error("Error starting test:", error.message);
+      alert("Failed to start the test. Please try again.");
     }
   };
 

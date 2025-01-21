@@ -11,6 +11,8 @@ import {
   ArrowForward as ArrowForwardIcon,
 } from "@mui/icons-material";
 
+import { parseJwt } from "./utils/decodeJWT";
+
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
   const navigate = useNavigate();
@@ -164,7 +166,14 @@ export default function App() {
         // Clear form and close modal
         setShowLoginModal(false);
         setLoginForm({ email: "", password: "" });
-        navigate(`/user/${data.userId}/dashboard`);
+        const decodedToken = parseJwt(data.token);
+
+        if (decodedToken) {
+          const { userId } = decodedToken;
+          navigate(`/user/${userId}/dashboard`);
+        } else {
+          console.warn("Failed to decode JWT.");
+        }
       } else {
         // Handle specific error messages from your backend
         setError(data.message || "Login failed");

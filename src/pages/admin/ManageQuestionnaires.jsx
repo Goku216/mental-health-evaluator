@@ -22,6 +22,7 @@ import {
   Delete as DeleteIcon,
   Close as CloseIcon,
 } from "@mui/icons-material";
+import axios from "axios";
 
 const QuestionnaireCard = ({ questionnaire, onEdit, onDelete }) => {
   return (
@@ -188,10 +189,8 @@ export const ManageQuestionnaires = () => {
   useEffect(() => {
     const fetchQuestionnaires = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:3000/api/admin/questionnaires"
-        );
-        const data = await response.json();
+        const response = await axios.get("/admin/questionnaires");
+        const data = await response.data;
         setQuestionnaires(data);
       } catch (error) {
         console.error("Error fetching questionnaires:", error);
