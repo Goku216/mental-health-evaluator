@@ -140,21 +140,24 @@ export default function App() {
     setError("");
 
     try {
-      const response = await axios.post("/user/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const response = await axios.post(
+        "/user/login",
+        {
           email: loginForm.email,
           password: loginForm.password,
-        }),
-      });
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true, // If your backend requires authentication cookies
+        }
+      );
 
-      const data = await response.json();
+      const data = response.data; // Axios does not need `await response.data`
       console.log("Login response:", data); // Debug logging
 
-      if (response.ok && data.token) {
+      if (response.status === 200 && data.token) {
         // Store authentication data
         localStorage.setItem("User_Token", data.token);
 
@@ -167,6 +170,8 @@ export default function App() {
         // Clear form and close modal
         setShowLoginModal(false);
         setLoginForm({ email: "", password: "" });
+
+        // Decode JWT token if necessary
         const decodedToken = parseJwt(data.token);
 
         if (decodedToken) {
@@ -181,17 +186,19 @@ export default function App() {
       }
     } catch (err) {
       console.error("Login error:", err); // Debug logging
-      setError("An error occurred during login");
+      setError(err.response?.data?.message || "An error occurred during login");
     } finally {
       setIsLoading(false);
     }
   };
+
   // Update the handleRegisterSubmit function with correct URL
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
+    // Check if passwords match
     if (registerForm.password !== registerForm.confirmPassword) {
       setError("Passwords don't match");
       setIsLoading(false);
@@ -199,23 +206,25 @@ export default function App() {
     }
 
     try {
-      const response = await axios.post("/user/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const response = await axios.post(
+        "/user/register",
+        {
           username: registerForm.name,
           email: registerForm.email,
           password: registerForm.password,
           isAdmin: false,
-        }),
-      });
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-      const data = await response.json();
+      const data = response.data; // No need for `await response.data`
       console.log("Register response:", data); // Debug logging
 
-      if (response.ok) {
+      if (response.status === 201) {
         // Handle successful registration
         setShowRegisterModal(false);
         setShowLoginModal(true);
@@ -232,11 +241,14 @@ export default function App() {
       }
     } catch (err) {
       console.error("Registration error:", err); // Debug logging
-      setError("An error occurred during registration");
+      setError(
+        err.response?.data?.message || "An error occurred during registration"
+      );
     } finally {
       setIsLoading(false);
     }
   };
+
   // handleLogout function
   const handleLogout = () => {
     localStorage.removeItem("token");
