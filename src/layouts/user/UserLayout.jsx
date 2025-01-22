@@ -23,9 +23,11 @@ import {
   Settings,
 } from "@mui/icons-material";
 import { parseJwt } from "../../utils/decodeJWT";
+import axios from "axios";
 
 export const UserLayout = () => {
   const [userid, setUserId] = useState(null);
+  const [username, setUsername] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -39,8 +41,7 @@ export const UserLayout = () => {
     const userToken = localStorage.getItem("User_Token");
     if (!userToken) {
       navigate("/");
-    }
-    if (userToken) {
+    } else {
       const decodedToken = parseJwt(userToken);
       if (decodedToken) {
         const { userId } = decodedToken;
@@ -48,6 +49,22 @@ export const UserLayout = () => {
       }
     }
   }, []);
+
+  // Ensure `userId` is set before making the API call
+  useEffect(() => {
+    if (!userid) return; // Prevent API call if userId is null
+
+    const fetchUsername = async () => {
+      try {
+        const response = await axios.get(`user/${userid}/getusername`);
+        setUsername(response.data.username);
+      } catch (error) {
+        console.error("Error fetching username:", error);
+      }
+    };
+
+    fetchUsername();
+  }, [userid]); // Add userId as a dependency
 
   const handleProfileMenuOpen = (event) => {
     setProfileAnchorEl(event.currentTarget);
@@ -230,7 +247,7 @@ export const UserLayout = () => {
               </Avatar>
               {!isMobile && (
                 <>
-                  <Typography sx={{ ml: 1, mr: 0.5 }}>John Doe</Typography>
+                  <Typography sx={{ ml: 1, mr: 0.5 }}>{username}</Typography>
                   <KeyboardArrowDown />
                 </>
               )}

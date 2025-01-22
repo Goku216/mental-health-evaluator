@@ -1,4 +1,5 @@
-import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -21,7 +22,7 @@ import {
   HealthAndSafety,
   ReportProblem,
 } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 // Custom theme colors
 const theme = {
@@ -50,6 +51,7 @@ const getSeverityColor = (severity) => {
 };
 
 export const ResultPage = () => {
+  const [uid, setUid] = useState(null);
   const location = useLocation();
   console.log(location.state);
   const {
@@ -59,17 +61,100 @@ export const ResultPage = () => {
     recommendation,
     completedAt,
   } = location.state || {};
-  console.log(location);
 
-  console.log(status);
+  const queryParams = new URLSearchParams(location.search);
+  const testId = queryParams.get("testId");
+  console.log(testId);
   const navigate = useNavigate();
+  const decodeToken = (token) => {
+    if (!token) return null; // Check for null/undefined token
 
-  const handleRetake = () => {
-    // navigate("/assessment");
+    try {
+      const payloadBase64 = token.split(".")[1];
+      if (!payloadBase64) return null; // Ensure payload part exists
+
+      const decodedPayload = JSON.parse(atob(payloadBase64));
+      return decodedPayload;
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem("User_Token");
+
+    if (token) {
+      const decodedToken = decodeToken(token);
+
+      if (decodedToken && decodedToken.userId) {
+        setUid(decodedToken.userId);
+        console.log(decodedToken.userId);
+      } else {
+        console.log("Invalid or expired token.");
+      }
+    } else {
+      console.log("No token found in local storage.");
+    }
+  }, []);
+
+  const createEvaluationSession = async () => {
+    try {
+      const sessionData = {
+        id: crypto.randomUUID(), // Generate unique ID
+        user_id: uid,
+        questionnaire_id: testId,
+        started_at: new Date().toISOString(),
+        completed_at: null,
+        status: "in_progress",
+      };
+
+      // Make API call to create session
+      const response = await axios.post(
+        "/user/evaluation-sessions",
+        sessionData
+      );
+
+      // Store session ID safely
+      if (typeof localStorage !== "undefined") {
+        localStorage.setItem("currentSessionId", sessionData.id);
+      }
+
+      return response?.data ?? { error: "Failed to create session" };
+    } catch (error) {
+      console.error("Error creating evaluation session:", error.message);
+      return { error: "Error creating evaluation session. Please try again." };
+    }
+  };
+
+  const handleRetake = async () => {
+    try {
+      const result = await createEvaluationSession(testId);
+      if (result.error) {
+        alert(result.error); // Notify user about failure
+        return;
+      }
+      console.log(result);
+      // Navigate to appropriate test page based on testId
+      switch (testId) {
+        case "phq9":
+          navigate(`/session/${result.data.id}/phq9`);
+          break;
+        case "gad7":
+          navigate(`/session/${result.data.id}/gad7`);
+          break;
+        default:
+          console.warn("Unknown testId:", testId);
+          navigate(`/user/${uid}/dashboard`);
+      }
+    } catch (error) {
+      console.error("Error starting test:", error.message);
+      alert("Failed to start the test. Please try again.");
+    }
   };
 
   const handleDashboard = () => {
-    // navigate("/dashboard");
+    navigate(`/user/${uid}/dashboard`);
   };
   if (!location.state) {
     return <p>No state passed!</p>; // Or any error handling

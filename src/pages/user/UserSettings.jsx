@@ -1,5 +1,7 @@
 // SettingsPage.jsx
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
 import {
   Container,
   Paper,
@@ -35,19 +37,34 @@ const SettingsSection = ({ title, children }) => (
 );
 
 export const UserSettings = () => {
+  const { id } = useParams();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    username: "current_username",
-    email: "user@example.com",
+    username: "",
+    email: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
-    emailNotifications: true,
-    darkMode: false,
-    language: "English",
   });
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    const fetch_UserProfile = async () => {
+      try {
+        const response = await axios.get(`/user/${id}/getusername`);
+        const data = await response.data;
+        setFormData({
+          username: data.username,
+          email: data.email,
+        });
+      } catch (error) {
+        console.error("Error fetching questionnaires:", error);
+      }
+    };
+
+    fetch_UserProfile();
+  }, []);
 
   const handleChange = (event) => {
     const { name, value, checked } = event.target;
@@ -57,20 +74,35 @@ export const UserSettings = () => {
     }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    // Password validation
-    if (
-      formData.newPassword &&
-      formData.newPassword !== formData.confirmPassword
-    ) {
-      setErrorMessage("Passwords don't match");
-      return;
+
+    // Check if the user entered a new password
+    if (formData.newPassword || formData.confirmPassword) {
+      if (formData.newPassword !== formData.confirmPassword) {
+        return alert("Passwords do not match");
+      }
     }
 
-    // Simulate API call
-    setSuccessMessage("Settings updated successfully!");
-    setTimeout(() => setSuccessMessage(""), 3000);
+    // Prepare the payload dynamically, excluding empty fields
+    const payload = {
+      username: formData.username,
+      email: formData.email,
+    };
+
+    if (formData.currentPassword && formData.newPassword) {
+      payload.currentPassword = formData.currentPassword;
+      payload.newPassword = formData.newPassword;
+    }
+
+    try {
+      const response = await axios.put(`/user/${id}/changesettings`, payload);
+      console.log(response.data);
+      alert("Profile updated successfully");
+    } catch (error) {
+      console.error("Profile update failed:", error);
+      alert(error.response?.data?.error || "Something went wrong");
+    }
   };
 
   return (

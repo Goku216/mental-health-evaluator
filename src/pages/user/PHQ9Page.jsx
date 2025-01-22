@@ -11,6 +11,7 @@ import axios from "axios";
 export const PHQ9Page = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const testId = "phq9";
 
   const [PHQ9_QUESTIONS, setPHQ9_QUESTIONS] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -85,7 +86,9 @@ export const PHQ9Page = () => {
       console.log("Assessment Result:", answersResponse.data);
       console.log("Session Response:", sessionResponse);
       console.log("State to be passed:", answersResponse.data.data);
-      navigate(`/session/${id}/result`, { state: answersResponse.data.data });
+      navigate(`/session/${id}/result?testId=${testId}`, {
+        state: answersResponse.data.data,
+      });
     } catch (error) {
       console.error("Error submitting answers:", error);
       setResponseMessage("There was an error submitting your answers.");
