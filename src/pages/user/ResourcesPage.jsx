@@ -18,8 +18,8 @@ export const ResourcesPage = () => {
           information. Click on each section to learn more.
         </Typography>
 
-        <ResourceCard {...educationalResources} />
-        <ResourceCard {...crisisResources} />
+        <ResourceCard resourceData={educationalResources} />
+        <ResourceCard resourceData={crisisResources} />
       </Box>
     </Container>
   );

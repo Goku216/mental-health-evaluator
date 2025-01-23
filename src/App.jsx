@@ -24,6 +24,7 @@ import {
   DarkMode as DarkModeIcon,
   KeyboardArrowLeft,
   KeyboardArrowRight,
+  Psychology as PsychologyIcon,
 } from "@mui/icons-material";
 
 import { parseJwt } from "./utils/decodeJWT";
@@ -174,12 +175,12 @@ export default function App() {
           headers: {
             "Content-Type": "application/json",
           },
-          withCredentials: true, // If your backend requires authentication cookies
+          withCredentials: true,
         }
       );
 
-      const data = response.data; // Axios does not need `await response.data`
-      console.log("Login response:", data); // Debug logging
+      const data = response.data;
+      console.log("Login response:", data);
 
       if (response.status === 200 && data.token) {
         // Store authentication data
@@ -199,19 +200,27 @@ export default function App() {
         const decodedToken = parseJwt(data.token);
 
         if (decodedToken) {
-          const { userId } = decodedToken;
-          navigate(`/user/${userId}/dashboard`);
+          const { userId, isAdmin } = decodedToken;
+          if (isAdmin) {
+            navigate("/admin");
+          } else {
+            navigate(`/user/${userId}/dashboard`);
+          }
         } else {
           console.warn("Failed to decode JWT.");
         }
       } else {
         // Handle specific error messages from your backend
-        setError(data.message || "Login failed");
-        showToast("Login failed!", "error");
+        const errorMessage = data.message || "Login failed";
+        setError(errorMessage);
+        showToast(errorMessage, "error");
       }
     } catch (err) {
-      console.error("Login error:", err); // Debug logging
-      setError(err.response?.data?.message || "An error occurred during login");
+      console.error("Login error:", err);
+      const errorMessage =
+        err.response?.data?.message || "An error occurred during login";
+      setError(errorMessage);
+      showToast(errorMessage, "error");
     } finally {
       setIsLoading(false);
     }
@@ -311,8 +320,13 @@ export default function App() {
         <div className=" mx-auto px-6">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center space-x-2">
-              <SettingsIcon className="w-6 h-6 text-blue-500" />
-              <h1 className="text-2xl font-bold tracking-tight">MindCare</h1>
+              <PsychologyIcon
+                fontSize="large"
+                className="w-6 h-6 text-blue-500"
+              />
+              <h1 className="text-2xl font-bold tracking-tight cursor-pointer">
+                MindCare
+              </h1>
             </div>
 
             <div className="md:hidden">

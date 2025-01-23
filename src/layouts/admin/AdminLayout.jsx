@@ -1,9 +1,9 @@
-import React, { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { AdminAppBar, AdminSideBar } from "../../components/admin";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 
 const AdminLayout = () => {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation(); // Get the current location
 
@@ -13,10 +13,15 @@ const AdminLayout = () => {
 
   // Redirect to /admin/manageQuestions only if the current path is /admin
   useEffect(() => {
+    const userToken = localStorage.getItem("User_Token");
+
+    if (!userToken) {
+      navigate("/");
+    }
     if (location.pathname === "/admin") {
       navigate("/admin/manageQuestions", { replace: true });
     }
-  }, [location, navigate]);
+  }, []);
 
   return (
     <div>

@@ -21,9 +21,11 @@ import {
   Person,
   KeyboardArrowDown,
   Settings,
+  Psychology,
 } from "@mui/icons-material";
 import { parseJwt } from "../../utils/decodeJWT";
 import axios from "axios";
+import { nav } from "framer-motion/client";
 
 export const UserLayout = () => {
   const [userid, setUserId] = useState(null);
@@ -39,7 +41,7 @@ export const UserLayout = () => {
 
   useEffect(() => {
     const userToken = localStorage.getItem("User_Token");
-    if (!userToken) {
+    if (!userToken || location.pathname === "/user") {
       navigate("/");
     } else {
       const decodedToken = parseJwt(userToken);
@@ -48,7 +50,7 @@ export const UserLayout = () => {
         setUserId(userId);
       }
     }
-  }, []);
+  }, [location, navigate]);
 
   // Ensure `userId` is set before making the API call
   useEffect(() => {
@@ -117,7 +119,7 @@ export const UserLayout = () => {
               component="div"
               sx={{ display: "flex", alignItems: "center" }}
             >
-              <Dashboard sx={{ mr: 1 }} />
+              <Psychology fontSize="large" sx={{ mr: 1 }} />
               MindCare
             </Typography>
           </Box>

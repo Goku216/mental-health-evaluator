@@ -7,6 +7,10 @@ import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 
 export function AdminAppBar({ toggleDrawer, open }) {
+  const handleLogout = () => {
+    localStorage.removeItem("User_Token");
+    window.location.reload();
+  };
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
@@ -24,7 +28,7 @@ export function AdminAppBar({ toggleDrawer, open }) {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Menu
           </Typography>
-          <Button variant="contained" color="error">
+          <Button onClick={handleLogout} variant="contained" color="error">
             Logout
           </Button>
         </Toolbar>

@@ -40,9 +40,8 @@ export function ManageUsersPage() {
         const response = await axios.get("/admin/getusers");
         const data = await response.data;
         setUsers(data);
-        console.log(data);
       } catch (error) {
-        console.error("Error fetching questionnaires:", error);
+        console.error("Error fetching users:", error);
       }
     };
 

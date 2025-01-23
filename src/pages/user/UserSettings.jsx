@@ -84,6 +84,17 @@ export const UserSettings = () => {
       }
     }
 
+    if (
+      (formData.currentPassword &&
+        (!formData.newPassword || !formData.confirmPassword)) ||
+      (formData.newPassword &&
+        (!formData.currentPassword || !formData.confirmPassword)) ||
+      (formData.confirmPassword &&
+        (!formData.newPassword || !formData.currentPassword))
+    ) {
+      return alert("Please enter remaining field");
+    }
+
     // Prepare the payload dynamically, excluding empty fields
     const payload = {
       username: formData.username,
@@ -97,6 +108,7 @@ export const UserSettings = () => {
 
     try {
       const response = await axios.put(`/user/${id}/changesettings`, payload);
+      console.log(payload);
       console.log(response.data);
       alert("Profile updated successfully");
     } catch (error) {
