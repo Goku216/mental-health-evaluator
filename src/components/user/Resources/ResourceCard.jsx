@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { ExpandMore, ExpandLess } from "@mui/icons-material";
 
-export const ResourceCard = ({ title, topics }) => {
+export const ResourceCard = ({ resourceData }) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -26,7 +26,7 @@ export const ResourceCard = ({ title, topics }) => {
           }}
         >
           <Typography variant="h6" component="h2">
-            {title}
+            {resourceData.title}
           </Typography>
           <IconButton onClick={() => setExpanded(!expanded)}>
             {expanded ? <ExpandLess /> : <ExpandMore />}
@@ -34,17 +34,32 @@ export const ResourceCard = ({ title, topics }) => {
         </Box>
         <Collapse in={expanded} timeout="auto" unmountOnExit>
           <List>
-            {topics.map((topic, index) => (
-              <ListItem key={index}>
+            {resourceData.topics.map((topic, topicIndex) => (
+              <ListItem key={topicIndex}>
                 <ListItemText
                   primary={topic.title}
                   secondary={
                     <List>
-                      {topic.subtopics.map((subtopic, subIndex) => (
-                        <ListItem key={subIndex} sx={{ pl: 4 }}>
-                          <ListItemText primary={subtopic} />
-                        </ListItem>
-                      ))}
+                      {topic.subtopics.map((subtopic, subtopicIndex) => {
+                        // Handling both simple strings and objects with title/description
+                        const subtopicTitle =
+                          typeof subtopic === "string"
+                            ? subtopic
+                            : subtopic.title;
+                        const subtopicDescription =
+                          typeof subtopic === "object"
+                            ? subtopic.description
+                            : null;
+
+                        return (
+                          <ListItem key={subtopicIndex} sx={{ pl: 4 }}>
+                            <ListItemText
+                              primary={subtopicTitle}
+                              secondary={subtopicDescription}
+                            />
+                          </ListItem>
+                        );
+                      })}
                     </List>
                   }
                 />
