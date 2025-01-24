@@ -21,7 +21,7 @@ const AdminLayout = () => {
     if (location.pathname === "/admin") {
       navigate("/admin/manageQuestions", { replace: true });
     }
-  }, []);
+  }, [location, navigate]);
 
   return (
     <div>
