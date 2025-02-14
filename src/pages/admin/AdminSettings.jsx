@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Container,
   Typography,
@@ -22,9 +23,10 @@ import {
 export function AdminSettings() {
   const [activeTab, setActiveTab] = useState(0);
   const [profileData, setProfileData] = useState({
-    name: "Admin User",
-    email: "admin@example.com",
+    name: "",
+    email: "",
   });
+
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -37,6 +39,23 @@ export function AdminSettings() {
     marketingEmails: false,
   });
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    const fetch_AdminProfile = async () => {
+      try {
+        const response = await axios.get(`/admin/getadmin`);
+        const data = response.data;
+        setProfileData({
+          name: data.username,
+          email: data.email,
+        });
+      } catch (error) {
+        console.error("Error fetching admin stats:", error);
+      }
+    };
+
+    fetch_AdminProfile();
+  }, []);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -103,7 +122,7 @@ export function AdminSettings() {
               <TextField
                 fullWidth
                 label="Name"
-                value={profileData.name}
+                value={profileData.name || ""}
                 onChange={(e) =>
                   setProfileData({ ...profileData, name: e.target.value })
                 }
@@ -114,7 +133,7 @@ export function AdminSettings() {
                 fullWidth
                 label="Email"
                 type="email"
-                value={profileData.email}
+                value={profileData.email || ""}
                 onChange={(e) =>
                   setProfileData({ ...profileData, email: e.target.value })
                 }

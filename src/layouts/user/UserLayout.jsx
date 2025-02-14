@@ -120,7 +120,7 @@ export const UserLayout = () => {
               sx={{ display: "flex", alignItems: "center" }}
             >
               <Psychology fontSize="large" sx={{ mr: 1 }} />
-              MindCare
+              MHE
             </Typography>
           </Box>
 

@@ -15,6 +15,7 @@ import {
   TextField,
   Box,
   IconButton,
+  Alert,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -110,10 +111,32 @@ const QuestionnaireDialog = ({
     }
   );
 
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        title: initialData.title || "",
+        description: initialData.description || "",
+        questions: initialData.no_of_questions || "", // Match backend field
+        timeToComplete: initialData.time_to_complete || "", // Match backend field
+      });
+    } else {
+      setFormData({
+        title: "",
+        description: "",
+        questions: "",
+        timeToComplete: "",
+      });
+    }
+  }, [initialData, open]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
-    onClose();
+    // Transform data before submission
+    const submissionData = {
+      ...formData,
+      no_of_questions: Number(formData.questions), // Ensure number type
+    };
+    onSubmit(submissionData);
   };
 
   return (
@@ -187,6 +210,8 @@ const QuestionnaireDialog = ({
 
 export const ManageQuestionnaires = () => {
   const [questionnaires, setQuestionnaires] = useState([]);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
     const fetchQuestionnaires = async () => {
       try {
@@ -195,22 +220,43 @@ export const ManageQuestionnaires = () => {
         setQuestionnaires(data);
       } catch (error) {
         console.error("Error fetching questionnaires:", error);
+        setError("Failed to fetch questionnaires");
       }
     };
 
     fetchQuestionnaires();
   }, []);
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingQuestionnaire, setEditingQuestionnaire] = useState(null);
 
-  const handleAdd = (newQuestionnaire) => {
-    setQuestionnaires([
-      ...questionnaires,
-      {
-        ...newQuestionnaire,
-        id: questionnaires.length + 1,
-      },
-    ]);
+  const handleAdd = async (formData) => {
+    try {
+      // Transform the data to match backend expectations
+      const questionnaireData = {
+        title: formData.title,
+        description: formData.description,
+        no_of_questions: Number(formData.questions), // Ensure this is a number
+        time_to_complete: formData.timeToComplete,
+      };
+
+      console.log("Adding questionnaire:", questionnaireData);
+
+      const response = await axios.post(
+        "/admin/questionnaires",
+        questionnaireData
+      );
+
+      if (response.data.success) {
+        setQuestionnaires([...questionnaires, response.data.data]);
+        setError(null);
+      } else {
+        setError(response.data.message);
+      }
+    } catch (error) {
+      console.error("Error adding questionnaire:", error);
+      setError(error.response?.data?.message || "Failed to add questionnaire");
+    }
   };
 
   const handleEdit = (questionnaire) => {
@@ -218,20 +264,55 @@ export const ManageQuestionnaires = () => {
     setDialogOpen(true);
   };
 
-  const handleDelete = (id) => {
-    setQuestionnaires(questionnaires.filter((q) => q.id !== id));
+  const handleDelete = async (id) => {
+    try {
+      const response = await axios.delete(`/admin/questionnaires/${id}`);
+      setQuestionnaires(questionnaires.filter((q) => q.id !== id));
+      console.log("Item deleted successfully", response.data);
+    } catch (error) {
+      console.error("Error deleting item:", error);
+    }
   };
 
-  const handleSubmit = (formData) => {
-    if (editingQuestionnaire) {
-      setQuestionnaires(
-        questionnaires.map((q) =>
-          q.id === editingQuestionnaire.id ? { ...q, ...formData } : q
-        )
+  const handleSubmit = async (formData) => {
+    try {
+      setError(null);
+
+      // Transform the data to match backend expectations
+      const questionnaireData = {
+        title: formData.title,
+        description: formData.description,
+        no_of_questions: Number(formData.questions), // Ensure this is a number
+        time_to_complete: formData.timeToComplete,
+      };
+
+      console.log("Submitting questionnaire:", questionnaireData);
+
+      if (editingQuestionnaire) {
+        const response = await axios.put(
+          `/admin/questionnaires/${editingQuestionnaire.id}`,
+          questionnaireData
+        );
+
+        if (response.data.success) {
+          setQuestionnaires(
+            questionnaires.map((q) =>
+              q.id === editingQuestionnaire.id ? response.data.data : q
+            )
+          );
+          setEditingQuestionnaire(null);
+        } else {
+          setError(response.data.message);
+          return; // Don't close dialog if there's an error
+        }
+      } else {
+        await handleAdd(formData);
+      }
+    } catch (error) {
+      console.error("Error submitting questionnaire:", error);
+      setError(
+        error.response?.data?.message || "Failed to submit questionnaire"
       );
-      setEditingQuestionnaire(null);
-    } else {
-      handleAdd(formData);
     }
   };
 
@@ -240,6 +321,13 @@ export const ManageQuestionnaires = () => {
       <Typography variant="h4" gutterBottom>
         Manage Questionnaires
       </Typography>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+
       <Grid container spacing={4}>
         {questionnaires.map((questionnaire) => (
           <Grid item key={questionnaire.id} xs={12} sm={6} md={4}>
@@ -260,9 +348,15 @@ export const ManageQuestionnaires = () => {
         onClose={() => {
           setDialogOpen(false);
           setEditingQuestionnaire(null);
+          setError(null);
         }}
-        onSubmit={handleSubmit}
+        onSubmit={(formData) => {
+          setDialogOpen(false);
+          handleSubmit(formData);
+          window.location.reload();
+        }}
         initialData={editingQuestionnaire}
+        error={error}
       />
     </Container>
   );

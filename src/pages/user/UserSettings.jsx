@@ -59,7 +59,7 @@ export const UserSettings = () => {
           email: data.email,
         });
       } catch (error) {
-        console.error("Error fetching questionnaires:", error);
+        console.error("Error fetching user stats:", error);
       }
     };
 
