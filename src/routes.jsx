@@ -7,6 +7,7 @@ import {
   ManageQuestionnaires,
   ManageUsersPage,
   MessagesPage,
+  UserView,
 } from "./pages/admin";
 import {
   Dashboard,
@@ -79,6 +80,10 @@ export const router = createBrowserRouter([
         element: <ManageUsersPage />,
       },
       {
+        path: "/admin/manageUsers/:id",
+        element: <UserView />,
+      },
+      {
         path: "/admin/manageQuestions",
         element: <ManageQuestionnaires />,
       },
@@ -90,7 +95,6 @@ export const router = createBrowserRouter([
         path: "/admin/settings",
         element: <AdminSettings />,
       },
-      {},
     ],
   },
   {

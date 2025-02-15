@@ -38,7 +38,8 @@ export function AdminSettings() {
     securityAlerts: true,
     marketingEmails: false,
   });
-  const [message, setMessage] = useState("");
+  const [successmessage, setsuccessMessage] = useState("");
+  const [errormessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     const fetch_AdminProfile = async () => {
@@ -57,24 +58,59 @@ export function AdminSettings() {
     fetch_AdminProfile();
   }, []);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setsuccessMessage("");
+      setErrorMessage(""); // Clear the message after a certain time
+    }, 3000); // 3000ms = 3 seconds
+
+    return () => clearTimeout(timer); // Cleanup function to prevent memory leaks
+  }, []);
+
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
 
-  const handleProfileUpdate = (e) => {
+  const handleProfileUpdate = async (e) => {
     e.preventDefault();
     // Simulate profile update
-    setMessage("Profile updated successfully");
+    const payload = {
+      username: profileData.name,
+      email: profileData.email,
+    };
+
+    try {
+      const response = await axios.put("/admin/updatestats", payload);
+      const data = response.data;
+      setsuccessMessage(data.message);
+    } catch (error) {
+      console.error("Profile update failed:", error);
+      setErrorMessage(error.response?.data?.error || "Something went wrong");
+    }
   };
 
-  const handlePasswordChange = (e) => {
+  const handlePasswordChange = async (e) => {
     e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setMessage("Passwords do not match");
+      setErrorMessage("Passwords do not match");
       return;
     }
-    // Simulate password change
-    setMessage("Password updated successfully");
+
+    const payload = {
+      currentPassword: passwordData.currentPassword,
+      newPassword: passwordData.newPassword,
+      confirmPassword: passwordData.confirmPassword,
+    };
+
+    try {
+      const response = await axios.put("/admin/updatepassword", payload);
+      const data = response.data;
+
+      setsuccessMessage(data.message);
+    } catch (error) {
+      console.error("Profile update failed:", error);
+      setErrorMessage(error.response?.data?.error || "Something went wrong");
+    }
     setPasswordData({
       currentPassword: "",
       newPassword: "",
@@ -95,9 +131,15 @@ export function AdminSettings() {
         Admin Settings
       </Typography>
 
-      {message && (
+      {successmessage && (
         <Alert severity="success" sx={{ mb: 2 }}>
-          {message}
+          {successmessage}
+        </Alert>
+      )}
+
+      {errormessage && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errormessage}
         </Alert>
       )}
 
