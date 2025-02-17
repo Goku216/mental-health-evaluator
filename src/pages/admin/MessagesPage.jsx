@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { React, useState, useEffect } from "react";
 import axios from "axios";
 import {
   Container,
@@ -16,6 +16,7 @@ import {
   ListItem,
   ListItemText,
   Divider,
+  Alert,
 } from "@mui/material";
 import { Send as SendIcon, Message as MessageIcon } from "@mui/icons-material";
 
@@ -41,6 +42,17 @@ export function MessagesPage() {
     title: "",
     content: "",
   });
+  const [successmessage, setSuccessMessage] = useState("");
+  const [errormessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSuccessMessage("");
+      setErrorMessage(""); // Clear the message after a certain time
+    }, 3000); // 3000ms = 3 seconds
+
+    return () => clearTimeout(timer); // Cleanup function to prevent memory leaks
+  }, []);
 
   const [sentMessages, setSentMessages] = useState([]);
 
@@ -51,13 +63,30 @@ export function MessagesPage() {
     "Mental Health",
   ];
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     const newMessage = {
       ...messageData,
       id: Date.now(),
       date: new Date().toLocaleString(),
     };
+
+    console.log(e);
+
+    const payload = {
+      to: messageData.recipient,
+      subject: newMessage.title,
+      text: newMessage.content,
+    };
+
+    try {
+      const response = await axios.post("/admin/sendemail", payload);
+      const data = response.data;
+      setSuccessMessage(data.message);
+    } catch (error) {
+      setErrorMessage(error.response.data.message || "Something went wrong");
+    }
+    console.log("Sending message:", newMessage);
 
     setSentMessages([newMessage, ...sentMessages]);
 
@@ -72,6 +101,18 @@ export function MessagesPage() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
+      {successmessage && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          {successmessage}
+        </Alert>
+      )}
+
+      {errormessage && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errormessage}
+        </Alert>
+      )}
+
       <Typography variant="h4" gutterBottom>
         Health Tips and Messages
       </Typography>
@@ -99,8 +140,9 @@ export function MessagesPage() {
                       required
                     >
                       {users.map((user) => (
-                        <MenuItem key={user.username} value={user.username}>
-                          {user.username}
+                        <MenuItem key={user.username} value={user.email}>
+                          {" "}
+                          {user.username} ({user.email}){" "}
                         </MenuItem>
                       ))}
                     </Select>
@@ -170,33 +212,6 @@ export function MessagesPage() {
                 </Grid>
               </Grid>
             </Box>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Sent Messages
-            </Typography>
-            {sentMessages.length === 0 ? (
-              <Typography variant="body2" color="text.secondary">
-                No messages sent yet
-              </Typography>
-            ) : (
-              <List>
-                {sentMessages.map((message) => (
-                  <React.Fragment key={message.id}>
-                    <ListItem>
-                      <ListItemText
-                        primary={`${message.title} (${message.category})`}
-                        secondary={`To: ${message.recipient} | ${message.date}`}
-                      />
-                    </ListItem>
-                    <Divider />
-                  </React.Fragment>
-                ))}
-              </List>
-            )}
           </Paper>
         </Grid>
       </Grid>

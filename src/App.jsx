@@ -256,9 +256,11 @@ export default function App() {
       );
 
       const data = response.data; // No need for `await response.data`
-      console.log("Register response:", data); // Debug logging
+      console.log("Register response:", data);
 
-      if (response.status === 201) {
+      // Debug logging
+      console.log("Register response:", response.status === 200);
+      if (response.status === 200) {
         // Handle successful registration
         setShowRegisterModal(false);
         setShowLoginModal(true);
